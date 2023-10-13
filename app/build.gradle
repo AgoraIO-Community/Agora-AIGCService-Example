@@ -7,11 +7,11 @@ Properties properties = new Properties()
 InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
 properties.load(inputStream)
 android {
-    namespace 'io.agora.ai_engine_example'
+    namespace 'io.agora.aigic_service_example'
     compileSdk 31
 
     defaultConfig {
-        applicationId "io.agora.ai_engine_example"
+        applicationId "io.agora.aigic_service_example"
         minSdk 22
         targetSdk 30
         versionCode 1
@@ -23,6 +23,10 @@ android {
 
         buildConfigField("String", "APP_ID", "\"${properties.getProperty("APP_ID", "")}\"")
         buildConfigField("String", "APP_CERTIFICATE", "\"${properties.getProperty("APP_CERTIFICATE", "")}\"")
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
     }
 
     signingConfigs {
@@ -43,6 +47,13 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "Agora-AIGCService-SDK-Example-${versionName}-${variant.buildType.name}-${releaseTime()}.apk"
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -69,6 +80,13 @@ dependencies {
     implementation 'io.agora:authentication:1.6.1'
     implementation 'commons-codec:commons-codec:1.15'
 
+// https://mvnrepository.com/artifact/io.agora.rtc/agora-special-full
+    implementation 'io.agora.rtc:agora-special-full:4.2.2.1'
+
     //implementation 'com.alibaba.fastjson2:fastjson2:2.0.39'
 
+}
+
+static def releaseTime() {
+    return new Date().format("yyyyMMdd_HHmmss")
 }

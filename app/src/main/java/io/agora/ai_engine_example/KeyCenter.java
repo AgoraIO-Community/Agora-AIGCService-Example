@@ -2,6 +2,7 @@ package io.agora.ai_engine_example;
 
 import java.util.Random;
 
+import io.agora.aigic_service_example.BuildConfig;
 import io.agora.media.RtcTokenBuilder;
 import io.agora.rtm.RtmTokenBuilder;
 
