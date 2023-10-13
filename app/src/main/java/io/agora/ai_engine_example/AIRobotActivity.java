@@ -12,19 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import io.agora.aigc.sdk.AIGCServiceCallback;
 import io.agora.aigc.sdk.constants.HandleResult;
-import io.agora.aigc.sdk.constants.Language;
 import io.agora.aigc.sdk.constants.ServiceCode;
 import io.agora.aigc.sdk.constants.ServiceEvent;
 import io.agora.aigc.sdk.constants.Vad;
@@ -44,16 +35,16 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private AiRobotActivityBinding binding;
 
     private boolean mIsSpeaking = false;
-    private boolean mVoiceChangeEnable = false;
-    private boolean mDownload = false;
-    private boolean mMute = false;
-    private Language mLanguage = Language.ZH_CN;
-    private int mMaxRoleNum = 0;
-    private int mCurrentRoleIndex = 0;
-    private File mPcmFile;
-    private OutputStream mPcmOs;
-    private ExecutorService mExecutorCacheService;
-    private ExecutorService mExecutorService;
+    //    private boolean mVoiceChangeEnable = false;
+//    private boolean mDownload = false;
+//    private boolean mMute = false;
+//    private Language mLanguage = Language.ZH_CN;
+//    private int mMaxRoleNum = 0;
+//    private int mCurrentRoleIndex = 0;
+//    private File mPcmFile;
+//    private OutputStream mPcmOs;
+//    private ExecutorService mExecutorCacheService;
+//    private ExecutorService mExecutorService;
     private RtcEngine mRtcEngine;
     private final static String CHANNEL_ID = "TestAgoraAIGC";
 
@@ -70,19 +61,19 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
 
 
     private void initData() {
-        mExecutorCacheService = new ThreadPoolExecutor(Integer.MAX_VALUE, Integer.MAX_VALUE,
-                0, TimeUnit.SECONDS,
-                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
-        mExecutorService = new ThreadPoolExecutor(1, 1,
-                0, TimeUnit.SECONDS,
-                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
-        try {
-            mPcmFile = new File(getApplication().getExternalCacheDir().getPath() + "/temp/ui-test.pcm");
-            Log.i(TAG, "pcm file path:" + mPcmFile.getAbsolutePath());
-            mPcmOs = new FileOutputStream(mPcmFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        mExecutorCacheService = new ThreadPoolExecutor(Integer.MAX_VALUE, Integer.MAX_VALUE,
+//                0, TimeUnit.SECONDS,
+//                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+//        mExecutorService = new ThreadPoolExecutor(1, 1,
+//                0, TimeUnit.SECONDS,
+//                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+//        try {
+//            mPcmFile = new File(getApplication().getExternalCacheDir().getPath() + "/temp/ui-test.pcm");
+//            Log.i(TAG, "pcm file path:" + mPcmFile.getAbsolutePath());
+//            mPcmOs = new FileOutputStream(mPcmFile);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     public boolean initRtc(Context context) {
@@ -227,78 +218,77 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     updateRoleSpeak(true);
                     AIGCServiceManager.getInstance().getAIGCService().start();
                 }
-
             }
         });
 
-        binding.btnVoiceChange.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mVoiceChangeEnable) {
-                    mVoiceChangeEnable = false;
-                    binding.btnVoiceChange.setText(R.string.voice_change_enable);
-                } else {
-                    mVoiceChangeEnable = true;
-                    binding.btnVoiceChange.setText(R.string.voice_change_disable);
-                }
-            }
-        });
-
-        binding.btnSwitchLang.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (Language.ZH_CN == mLanguage) {
-                    mLanguage = Language.EN_US;
-                    binding.btnSwitchLang.setText(R.string.lang_switch_cn);
-                } else {
-                    mLanguage = Language.ZH_CN;
-                    binding.btnSwitchLang.setText(R.string.lang_switch_en);
-                }
-                mIsSpeaking = false;
-                binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.start_speak));
-            }
-        });
-
-        binding.btnExit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                enableUi(false);
-                AIGCServiceManager.getInstance().destroy();
-            }
-        });
-
-        binding.btnDownload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!mDownload) {
-                    mDownload = true;
-                    binding.btnDownload.setText(R.string.cancel_download);
-                } else {
-                    mDownload = false;
-                    binding.btnDownload.setText(R.string.download);
-                }
-            }
-        });
-
-
-        binding.btnMute.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!mMute) {
-                    mMute = true;
-                    binding.btnMute.setText(R.string.unmute);
-                } else {
-                    mMute = false;
-                    binding.btnMute.setText(R.string.mute);
-                }
-            }
-        });
-
-        binding.btnSwitchAiRole.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
+//        binding.btnVoiceChange.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (mVoiceChangeEnable) {
+//                    mVoiceChangeEnable = false;
+//                    binding.btnVoiceChange.setText(R.string.voice_change_enable);
+//                } else {
+//                    mVoiceChangeEnable = true;
+//                    binding.btnVoiceChange.setText(R.string.voice_change_disable);
+//                }
+//            }
+//        });
+//
+//        binding.btnSwitchLang.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (Language.ZH_CN == mLanguage) {
+//                    mLanguage = Language.EN_US;
+//                    binding.btnSwitchLang.setText(R.string.lang_switch_cn);
+//                } else {
+//                    mLanguage = Language.ZH_CN;
+//                    binding.btnSwitchLang.setText(R.string.lang_switch_en);
+//                }
+//                mIsSpeaking = false;
+//                binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.start_speak));
+//            }
+//        });
+//
+//        binding.btnExit.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                enableUi(false);
+//                AIGCServiceManager.getInstance().destroy();
+//            }
+//        });
+//
+//        binding.btnDownload.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!mDownload) {
+//                    mDownload = true;
+//                    binding.btnDownload.setText(R.string.cancel_download);
+//                } else {
+//                    mDownload = false;
+//                    binding.btnDownload.setText(R.string.download);
+//                }
+//            }
+//        });
+//
+//
+//        binding.btnMute.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!mMute) {
+//                    mMute = true;
+//                    binding.btnMute.setText(R.string.unmute);
+//                } else {
+//                    mMute = false;
+//                    binding.btnMute.setText(R.string.mute);
+//                }
+//            }
+//        });
+//
+//        binding.btnSwitchAiRole.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//            }
+//        });
     }
 
     public boolean updateRoleSpeak(boolean isSpeak) {
@@ -313,31 +303,20 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        AIGCServiceManager.getInstance().destroy();
+    }
+
+
+    @Override
+    public void onEventResult(@NonNull ServiceEvent event, @NonNull ServiceCode code, @Nullable String msg) {
+        Log.i(TAG, "onEventResult event:" + event + " code:" + code + " msg:" + msg);
     }
 
     @Override
-    public void onEventResult(@NonNull ServiceEvent serviceEvent, @NonNull ServiceCode serviceCode, @Nullable String s) {
-        Log.i(TAG, "onEventResult serviceEvent:" + serviceEvent + " serviceCode:" + serviceCode + " s:" + s);
-    }
-
-    @Override
-    public HandleResult onSpeech2TextResult(String roundId, Data<String> data, boolean b) {
-        Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " data:" + data + " b:" + b);
+    public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech) {
+        Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech);
         return HandleResult.CONTINUE;
     }
-
-    @Override
-    public HandleResult onLLMResult(String s, Data<String> data) {
-        Log.i(TAG, "onLLMResult s:" + s + " data:" + data);
-        return HandleResult.CONTINUE;
-    }
-
-    @Override
-    public HandleResult onText2SpeechResult(String s, Data<byte[]> data, int i, int i1, int i2) {
-        Log.i(TAG, "onText2SpeechResult s:" + s + " data:" + data + " i:" + i + " i1:" + i1 + " i2:" + i2);
-        return HandleResult.CONTINUE;
-    }
-
 
     @Override
     public boolean onRecordAudioFrame(String channelId, int type, int samplesPerChannel,

@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/voice_change_enable"
+        android:visibility="gone"
         app:layout_constraintStart_toEndOf="@id/btn_speak"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -30,6 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/lang_switch_en"
+        android:visibility="gone"
         app:layout_constraintStart_toEndOf="@id/btn_voice_change"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,6 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/exit"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_speak" />
 
@@ -49,6 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/download"
+        android:visibility="gone"
         app:layout_constraintStart_toEndOf="@id/btn_exit"
         app:layout_constraintTop_toBottomOf="@id/btn_speak" />
 
@@ -58,6 +62,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/mute"
+        android:visibility="gone"
         app:layout_constraintStart_toEndOf="@id/btn_download"
         app:layout_constraintTop_toBottomOf="@id/btn_speak" />
 
@@ -67,6 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:text="@string/switch_ai_role"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_exit" />
 
@@ -78,6 +84,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_switch_ai_role" />
