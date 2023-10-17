@@ -67,13 +67,6 @@ public class AIGCServiceManager {
     }
 
 
-    public AIRole getCurrentAIRole() {
-        if (null != mAIGCService) {
-            return mAIGCService.getCurrentRole();
-        }
-        return null;
-    }
-
     public void destroy() {
         AIGCService.destroy();
         mAIGCService = null;

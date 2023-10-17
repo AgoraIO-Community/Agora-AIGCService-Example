@@ -15,79 +15,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/btn_voice_change"
+        android:id="@+id/btn_test_send_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:text="@string/voice_change_enable"
-        android:visibility="gone"
+        android:text="@string/test_send_text"
         app:layout_constraintStart_toEndOf="@id/btn_speak"
         app:layout_constraintTop_toTopOf="parent" />
 
 
     <Button
-        android:id="@+id/btn_switch_lang"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/lang_switch_en"
-        android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/btn_voice_change"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
         android:id="@+id/btn_exit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/exit"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
-
-
-    <Button
-        android:id="@+id/btn_download"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/download"
-        android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/btn_exit"
-        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
-
-    <Button
-        android:id="@+id/btn_mute"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/mute"
-        android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/btn_download"
-        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
-
-    <Button
-        android:id="@+id/btn_switch_ai_role"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/switch_ai_role"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_exit" />
-
-    <FrameLayout
-        android:id="@+id/unity"
-        android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="5dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        android:visibility="gone"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_switch_ai_role" />
-
-
+        android:text="@string/exit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

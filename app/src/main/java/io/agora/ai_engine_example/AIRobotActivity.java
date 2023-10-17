@@ -13,6 +13,12 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import io.agora.aigc.sdk.AIGCServiceCallback;
 import io.agora.aigc.sdk.constants.HandleResult;
@@ -20,6 +26,7 @@ import io.agora.aigc.sdk.constants.ServiceCode;
 import io.agora.aigc.sdk.constants.ServiceEvent;
 import io.agora.aigc.sdk.constants.Vad;
 import io.agora.aigc.sdk.model.Data;
+import io.agora.aigc.sdk.model.ServiceVendor;
 import io.agora.aigic_service_example.R;
 import io.agora.aigic_service_example.databinding.AiRobotActivityBinding;
 import io.agora.rtc2.ChannelMediaOptions;
@@ -35,17 +42,12 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private AiRobotActivityBinding binding;
 
     private boolean mIsSpeaking = false;
-    //    private boolean mVoiceChangeEnable = false;
-//    private boolean mDownload = false;
-//    private boolean mMute = false;
-//    private Language mLanguage = Language.ZH_CN;
-//    private int mMaxRoleNum = 0;
-//    private int mCurrentRoleIndex = 0;
-//    private File mPcmFile;
-//    private OutputStream mPcmOs;
-//    private ExecutorService mExecutorCacheService;
-//    private ExecutorService mExecutorService;
+    private ExecutorService mExecutorCacheService;
+    private ExecutorService mExecutorService;
     private RtcEngine mRtcEngine;
+    private RingBuffer mSpeechRingBuffer;
+    private boolean mRingBufferReady;
+    private String mPreTtsRoundId;
     private final static String CHANNEL_ID = "TestAgoraAIGC";
 
     @Override
@@ -53,7 +55,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         super.onCreate(savedInstanceState);
         binding = AiRobotActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        enableUi(true);
+        enableUi(false);
         initData();
         initRtc(getApplicationContext());
         initAIGCService();
@@ -61,19 +63,19 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
 
 
     private void initData() {
-//        mExecutorCacheService = new ThreadPoolExecutor(Integer.MAX_VALUE, Integer.MAX_VALUE,
-//                0, TimeUnit.SECONDS,
-//                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
-//        mExecutorService = new ThreadPoolExecutor(1, 1,
-//                0, TimeUnit.SECONDS,
-//                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
-//        try {
-//            mPcmFile = new File(getApplication().getExternalCacheDir().getPath() + "/temp/ui-test.pcm");
-//            Log.i(TAG, "pcm file path:" + mPcmFile.getAbsolutePath());
-//            mPcmOs = new FileOutputStream(mPcmFile);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        mExecutorCacheService = new ThreadPoolExecutor(Integer.MAX_VALUE, Integer.MAX_VALUE,
+                0, TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+        mExecutorService = new ThreadPoolExecutor(1, 1,
+                0, TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+        if (null == mSpeechRingBuffer) {
+            mSpeechRingBuffer = new RingBuffer(1024 * 1024 * 5);
+        } else {
+            mSpeechRingBuffer.clear();
+        }
+        mPreTtsRoundId = "";
     }
 
     public boolean initRtc(Context context) {
@@ -196,11 +198,8 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
 
     private void enableUi(boolean enable) {
         binding.btnSpeak.setEnabled(enable);
-        binding.btnVoiceChange.setEnabled(enable);
-        binding.btnSwitchLang.setEnabled(enable);
         binding.btnExit.setEnabled(enable);
-        binding.btnMute.setEnabled(enable);
-        binding.btnSwitchAiRole.setEnabled(enable);
+        binding.btnTestSendText.setEnabled(enable);
     }
 
     private void initView() {
@@ -214,6 +213,8 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     AIGCServiceManager.getInstance().getAIGCService().stop();
                 } else {
                     mIsSpeaking = true;
+                    mSpeechRingBuffer.clear();
+                    mRingBufferReady = false;
                     binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.end_speak));
                     updateRoleSpeak(true);
                     AIGCServiceManager.getInstance().getAIGCService().start();
@@ -221,74 +222,23 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             }
         });
 
-//        binding.btnVoiceChange.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (mVoiceChangeEnable) {
-//                    mVoiceChangeEnable = false;
-//                    binding.btnVoiceChange.setText(R.string.voice_change_enable);
-//                } else {
-//                    mVoiceChangeEnable = true;
-//                    binding.btnVoiceChange.setText(R.string.voice_change_disable);
-//                }
-//            }
-//        });
-//
-//        binding.btnSwitchLang.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (Language.ZH_CN == mLanguage) {
-//                    mLanguage = Language.EN_US;
-//                    binding.btnSwitchLang.setText(R.string.lang_switch_cn);
-//                } else {
-//                    mLanguage = Language.ZH_CN;
-//                    binding.btnSwitchLang.setText(R.string.lang_switch_en);
-//                }
-//                mIsSpeaking = false;
-//                binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.start_speak));
-//            }
-//        });
-//
-//        binding.btnExit.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                enableUi(false);
-//                AIGCServiceManager.getInstance().destroy();
-//            }
-//        });
-//
-//        binding.btnDownload.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!mDownload) {
-//                    mDownload = true;
-//                    binding.btnDownload.setText(R.string.cancel_download);
-//                } else {
-//                    mDownload = false;
-//                    binding.btnDownload.setText(R.string.download);
-//                }
-//            }
-//        });
-//
-//
-//        binding.btnMute.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!mMute) {
-//                    mMute = true;
-//                    binding.btnMute.setText(R.string.unmute);
-//                } else {
-//                    mMute = false;
-//                    binding.btnMute.setText(R.string.mute);
-//                }
-//            }
-//        });
-//
-//        binding.btnSwitchAiRole.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//            }
-//        });
+        binding.btnTestSendText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mIsSpeaking = true;
+                AIGCServiceManager.getInstance().getAIGCService().start();
+                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？");
+            }
+        });
+
+
+        binding.btnExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                enableUi(false);
+                AIGCServiceManager.getInstance().destroy();
+            }
+        });
     }
 
     public boolean updateRoleSpeak(boolean isSpeak) {
@@ -306,15 +256,90 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         AIGCServiceManager.getInstance().destroy();
     }
 
+    private byte[] getSpeechVoiceData(int length) {
+        byte[] bytes = null;
+        if (mRingBufferReady) {
+            bytes = getSpeechBuffer(length);
+        } else {
+            //wait length*WAIT_AUDIO_FRAME_COUNT data
+            if (mSpeechRingBuffer.size() >= length * 3) {
+                mRingBufferReady = true;
+                bytes = getSpeechBuffer(length);
+            }
+        }
+        return bytes;
+    }
+
+    private byte[] getSpeechBuffer(int length) {
+        if (mSpeechRingBuffer.size() < length) {
+            return null;
+        }
+        Object o;
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) {
+            o = mSpeechRingBuffer.take();
+            if (null == o) {
+                return null;
+            }
+            bytes[i] = (byte) o;
+        }
+        return bytes;
+    }
 
     @Override
     public void onEventResult(@NonNull ServiceEvent event, @NonNull ServiceCode code, @Nullable String msg) {
         Log.i(TAG, "onEventResult event:" + event + " code:" + code + " msg:" + msg);
+        if (event == ServiceEvent.INITIALIZE && code == ServiceCode.SUCCESS) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    enableUi(true);
+                }
+            });
+            Log.i(TAG, "getRoles:" + Arrays.toString(AIGCServiceManager.getInstance().getAIGCService().getRoles()));
+            Log.i(TAG, "getCurrentRole:" + AIGCServiceManager.getInstance().getAIGCService().getCurrentRole());
+            AIGCServiceManager.getInstance().getAIGCService().setRole(AIGCServiceManager.getInstance().getAIGCService().getRoles()[1].getRoleId());
+
+            Log.i(TAG, "getServiceVendors:" + AIGCServiceManager.getInstance().getAIGCService().getServiceVendors());
+            ServiceVendor serviceVendor = new ServiceVendor();
+            serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(1));
+            AIGCServiceManager.getInstance().getAIGCService().setServiceVendor(serviceVendor);
+        }
     }
 
     @Override
     public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech) {
         Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech);
+        return HandleResult.CONTINUE;
+    }
+
+    @Override
+    public HandleResult onLLMResult(String roundId, Data<String> answer) {
+        Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer);
+        return HandleResult.CONTINUE;
+    }
+
+    @Override
+    public HandleResult onText2SpeechResult(String roundId, Data<byte[]> voice, int sampleRates, int channels, int bits) {
+        Log.i(TAG, "onText2SpeechResult roundId:" + roundId + " voice:" + voice + " sampleRates:" + sampleRates + " channels:" + channels + " bits:" + bits);
+        if (!mPreTtsRoundId.equalsIgnoreCase(roundId)) {
+            mSpeechRingBuffer.clear();
+            mRingBufferReady = false;
+        }
+        mPreTtsRoundId = roundId;
+
+        final byte[] voices = voice.getData();
+        mExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (null != voices) {
+                    for (byte b : voices) {
+                        mSpeechRingBuffer.put(b);
+                    }
+                }
+            }
+        });
+
         return HandleResult.CONTINUE;
     }
 
@@ -338,6 +363,12 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                                         int bytesPerSample, int channels, int samplesPerSec, ByteBuffer buffer,
                                         long renderTimeMs, int avsync_type) {
         if (mIsSpeaking) {
+            byte[] bytes = getSpeechVoiceData(buffer.capacity());
+
+            if (null != bytes) {
+                final byte[] voices = bytes;
+                buffer.put(voices, 0, buffer.capacity());
+            }
         }
         return true;
     }
