@@ -1,4 +1,4 @@
-package io.agora.ai_engine_example;
+package io.agora.aigc_service_example;
 
 public class RingBuffer {
     /**

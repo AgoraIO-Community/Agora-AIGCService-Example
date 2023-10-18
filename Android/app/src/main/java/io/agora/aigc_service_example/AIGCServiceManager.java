@@ -1,4 +1,4 @@
-package io.agora.ai_engine_example;
+package io.agora.aigc_service_example;
 
 import android.content.Context;
 import android.util.Log;
@@ -7,7 +7,6 @@ import io.agora.aigc.sdk.AIGCService;
 import io.agora.aigc.sdk.AIGCServiceCallback;
 import io.agora.aigc.sdk.AIGCServiceConfig;
 import io.agora.aigc.sdk.constants.Language;
-import io.agora.aigc.sdk.model.AIRole;
 import io.agora.aigc.sdk.model.SceneMode;
 
 public class AIGCServiceManager {

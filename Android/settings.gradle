@@ -18,5 +18,5 @@ dependencyResolutionManagement {
 
     }
 }
-rootProject.name = "Agora-AIGCService-SDK-Example"
+rootProject.name = "Agora-AIGCService-Example"
 include ':app'

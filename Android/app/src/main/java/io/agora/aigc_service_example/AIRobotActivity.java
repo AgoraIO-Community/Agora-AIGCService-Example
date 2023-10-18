@@ -1,4 +1,4 @@
-package io.agora.ai_engine_example;
+package io.agora.aigc_service_example;
 
 import android.Manifest;
 import android.app.Activity;
@@ -304,6 +304,12 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             ServiceVendor serviceVendor = new ServiceVendor();
             serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(1));
             AIGCServiceManager.getInstance().getAIGCService().setServiceVendor(serviceVendor);
+        } else if (event == ServiceEvent.START && code == ServiceCode.SUCCESS) {
+
+        } else if (event == ServiceEvent.STOP && code == ServiceCode.SUCCESS) {
+
+        } else if (event == ServiceEvent.DESTROY && code == ServiceCode.SUCCESS) {
+
         }
     }
 

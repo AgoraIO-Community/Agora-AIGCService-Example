@@ -16,7 +16,7 @@
         android:theme="@style/Theme.AgoraGptSDK"
         tools:targetApi="31">
         <activity
-            android:name="io.agora.ai_engine_example.AIRobotActivity"
+            android:name="io.agora.aigc_service_example.AIRobotActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
