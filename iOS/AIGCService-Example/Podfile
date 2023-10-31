@@ -4,12 +4,13 @@
 target 'AIGC-Examples' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
+  source 'https://github.com/CocoaPods/Specs.git'
 
   # Pods for AIGC-Examples
 
    use_frameworks!
 
-    pod 'AgoraAIGCService', :path => "../SDK/AgoraAIGCService_Binary.podspec"
+    pod 'AgoraAIGCService'
     pod "AgoraRtcEngine_iOS","4.2.3"
     pod 'RTMTokenBuilder', "1.0.2"
 end
