@@ -6,13 +6,13 @@
 //
 
 import UIKit
-import AIGCService
+import AgoraAIGCService
 import RTMTokenBuilder
 import AgoraRtcKit
 
-class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDelegate {
+class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManagerDelegate {
     let mainView = MainView()
-    var service: AIGCService!
+    var service: AgoraAIGCService!
     private let rtcManager = RtcManager()
     private let sttProviderName: String
     private let llmProviderName: String
@@ -42,7 +42,7 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
     
     deinit {
         service.stop()
-        AIGCService.destory()
+        AgoraAIGCService.destory()
     }
     
     private func initRtc() {
@@ -52,7 +52,7 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
     }
     
     private func initAIGC() {
-        service = AIGCService.create()
+        service = AgoraAIGCService.create()
         let uid = "123"
         let appId = Config.appId
         let cer = Config.certificate
@@ -60,16 +60,16 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
                                                appCertificate: cer,
                                                userUuid: uid)
         
-        let input = AIGCSceneMode(language: "zh-CN",
+        let input = AgoraAIGCSceneMode(language: "zh-CN",
                                   speechFrameBits: 16,
                                   speechFrameSampleRates: 16000,
                                   speechFrameChannels: 1)
-        let output = AIGCSceneMode(language: "zh-CN",
+        let output = AgoraAIGCSceneMode(language: "zh-CN",
                                    speechFrameBits: 16,
                                    speechFrameSampleRates: 16000,
                                    speechFrameChannels: 1)
         
-        let config = AIGCConfigure(appId: appId,
+        let config = AgoraAIGCConfigure(appId: appId,
                                    rtmToken: token,
                                    userId: uid,
                                    enableMultiTurnShortTermMemory: false,
@@ -90,14 +90,14 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
         service.setServiceVendor(serviceVendor)
     }
     
-    func findSpecificVendorGroup() -> AIGCServiceVendor {
+    func findSpecificVendorGroup() -> AgoraAIGCServiceVendor {
         guard let vendors = service.getVendors() else {
             fatalError("getVendors ret nil")
         }
         
-        var stt: AIGCSTTVendor?
-        var llm: AIGCLLMVendor?
-        var tts: AIGCTTSVendor?
+        var stt: AgoraAIGCSTTVendor?
+        var llm: AgoraAIGCLLMVendor?
+        var tts: AgoraAIGCTTSVendor?
         
         for vendor in vendors.stt {
             if vendor.id == sttProviderName {
@@ -120,12 +120,12 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
             }
         }
         
-        return AIGCServiceVendor(stt: stt!, llm: llm!, tts: tts!)
+        return AgoraAIGCServiceVendor(stt: stt!, llm: llm!, tts: tts!)
     }
     
     // MARK: - AIGCServiceDelegate
 
-    func onEventResult(with event: AIGCServiceEvent, code: AIGCServiceCode, message: String?) {
+    func onEventResult(with event: AgoraAIGCServiceEvent, code: AgoraAIGCServiceCode, message: String?) {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -148,7 +148,7 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
     
     func onSpeech2Text(withRoundId roundId: String,
                        result: String,
-                       recognizedSpeech: Bool) -> AIGCHandleResult {
+                       recognizedSpeech: Bool) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -160,7 +160,7 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
         return .continue
     }
     
-    func onLLMResult(withRoundId roundId: String, answer: String) -> AIGCHandleResult {
+    func onLLMResult(withRoundId roundId: String, answer: String) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -171,7 +171,7 @@ class MainViewController: UIViewController, AIGCServiceDelegate, RtcManagerDeleg
         return .continue
     }
     
-    func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int) -> AIGCHandleResult {
+    func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return

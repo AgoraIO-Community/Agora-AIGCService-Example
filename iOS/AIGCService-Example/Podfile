@@ -9,7 +9,7 @@ target 'AIGC-Examples' do
 
    use_frameworks!
 
-    pod 'AIGCService', :path => "../SDK/AIGCService_Binary.podspec"
+    pod 'AgoraAIGCService', :path => "../SDK/AgoraAIGCService_Binary.podspec"
     pod "AgoraRtcEngine_iOS","4.2.3"
     pod 'RTMTokenBuilder', "1.0.2"
 end
