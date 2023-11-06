@@ -298,11 +298,13 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             });
             Log.i(TAG, "getRoles:" + Arrays.toString(AIGCServiceManager.getInstance().getAIGCService().getRoles()));
             Log.i(TAG, "getCurrentRole:" + AIGCServiceManager.getInstance().getAIGCService().getCurrentRole());
-            AIGCServiceManager.getInstance().getAIGCService().setRole(AIGCServiceManager.getInstance().getAIGCService().getRoles()[1].getRoleId());
+            AIGCServiceManager.getInstance().getAIGCService().setRole(AIGCServiceManager.getInstance().getAIGCService().getRoles()[0].getRoleId());
 
             Log.i(TAG, "getServiceVendors:" + AIGCServiceManager.getInstance().getAIGCService().getServiceVendors());
             ServiceVendor serviceVendor = new ServiceVendor();
-            serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(1));
+            serviceVendor.setSttVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getSttList().get(0));
+            serviceVendor.setLlmVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getLlmList().get(0));
+            serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(0));
             AIGCServiceManager.getInstance().getAIGCService().setServiceVendor(serviceVendor);
         } else if (event == ServiceEvent.START && code == ServiceCode.SUCCESS) {
 
