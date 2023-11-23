@@ -322,7 +322,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     }
 
     @Override
-    public HandleResult onLLMResult(String roundId, Data<String> answer) {
+    public HandleResult onLLMResult(String roundId, Data<String> answer, boolean isRoundEnd) {
         Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer);
         return HandleResult.CONTINUE;
     }
