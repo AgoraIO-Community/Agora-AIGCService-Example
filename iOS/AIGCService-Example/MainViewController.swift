@@ -1,5 +1,5 @@
 //
-//  MainViewController.swift
+//  IntegrationTestingVC.swift
 //
 //
 //  Created by ZYP on 2023/10/18.
@@ -10,18 +10,14 @@ import AgoraAIGCService
 import RTMTokenBuilder
 import AgoraRtcKit
 
-class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManagerDelegate {
+class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManagerDelegate, MainViewDelegate {
     let mainView = MainView()
     var service: AgoraAIGCService!
     private let rtcManager = RtcManager()
-    private let sttProviderName: String
-    private let llmProviderName: String
-    private let ttsProviderName: String
+    private let config: Configurate
     
-    init(sttProviderName: String, llmProviderName: String, ttsProviderName: String) {
-        self.sttProviderName = sttProviderName
-        self.llmProviderName = llmProviderName
-        self.ttsProviderName = ttsProviderName
+    init(config: Configurate) {
+        self.config = config
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -31,10 +27,13 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = sttProviderName + "+" + llmProviderName + "+" + ttsProviderName
+        title = config.sttProviderName + "+" + config.llmProviderName + "+" + config.ttsProviderName
         view.backgroundColor = .white
         view.addSubview(mainView)
         mainView.frame = view.bounds
+        mainView.delegate = self
+        
+        mainView.showTextField(show: !config.enableSTT)
         
         initRtc()
         initAIGC()
@@ -60,34 +59,47 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
                                                appCertificate: cer,
                                                userUuid: uid)
         
-        let input = AgoraAIGCSceneMode(language: "zh-CN",
-                                  speechFrameBits: 16,
-                                  speechFrameSampleRates: 16000,
-                                  speechFrameChannels: 1)
-        let output = AgoraAIGCSceneMode(language: "zh-CN",
-                                   speechFrameBits: 16,
-                                   speechFrameSampleRates: 16000,
-                                   speechFrameChannels: 1)
-        
+        let input = AgoraAIGCSceneMode(language: config.inputLang,
+                                       speechFrameBits: 16,
+                                       speechFrameSampleRates: 16000,
+                                       speechFrameChannels: 1)
+        let output = AgoraAIGCSceneMode(language: config.outputLang,
+                                        speechFrameBits: 16,
+                                        speechFrameSampleRates: 16000,
+                                        speechFrameChannels: 1)
         let config = AgoraAIGCConfigure(appId: appId,
-                                   rtmToken: token,
-                                   userId: uid,
-                                   enableMultiTurnShortTermMemory: false,
-                                   speechRecognitionFiltersLength: 3,
-                                   input: input,
-                                   output: output,
-                                   enableLog: true,
-                                   enableSaveLogToFile: true,
-                                   userName: "小李")
+                                        rtmToken: token,
+                                        userId: uid,
+                                        enableMultiTurnShortTermMemory: config.enableMultiTurnShortTermMemory,
+                                        speechRecognitionFiltersLength: config.speechRecognitionFiltersLength,
+                                        input: input,
+                                        output: output,
+                                        enableLog: true,
+                                        enableSaveLogToFile: true,
+                                        userName: config.userName,
+                                        enableChatIdleTip: false,
+                                        logFilePath: nil,
+                                        noiseEnvironment: config.noiseEnv,
+                                        speechRecognitionCompletenessLevel: config.speechRecCompLevel)
         service.delegate = self
         service.initialize(config)
     }
     
     func setupRoleAndVendor() {
-        let roles = service.getRoles()
-        service.setRoleWithId(roles!.first!.roleId)
+        let targetRoleId = config.roleId
+        guard let roles = service.getRoles() else {
+            fatalError("roles is nil")
+        }
+        guard roles.contains(where: { $0.roleId == targetRoleId }) else {
+            fatalError("no target role")
+        }
+        
+        if let customPrompt = config.customPrompt {
+            service.setPrompt(customPrompt)
+        }
         let serviceVendor = findSpecificVendorGroup()
         service.setServiceVendor(serviceVendor)
+        service.setRoleWithId(targetRoleId)
     }
     
     func findSpecificVendorGroup() -> AgoraAIGCServiceVendor {
@@ -100,31 +112,34 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         var tts: AgoraAIGCTTSVendor?
         
         for vendor in vendors.stt {
-            if vendor.id == sttProviderName {
+            if vendor.id == config.sttProviderName {
                 stt = vendor
                 break
             }
         }
         
         for vendor in vendors.llm {
-            if vendor.vendorName == llmProviderName {
+            if vendor.id == config.llmProviderName {
                 llm = vendor
                 break
             }
         }
         
         for vendor in vendors.tts {
-            if vendor.vendorName == ttsProviderName {
+            if vendor.vendorName == config.ttsProviderName {
                 tts = vendor
                 break
             }
         }
         
-        return AgoraAIGCServiceVendor(stt: stt!, llm: llm!, tts: tts!)
+        return AgoraAIGCServiceVendor(stt: stt!,
+                                      llm: llm!,
+                                      tts: tts!)
+        
     }
     
     // MARK: - AIGCServiceDelegate
-
+    
     func onEventResult(with event: AgoraAIGCServiceEvent, code: AgoraAIGCServiceCode, message: String?) {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
@@ -147,28 +162,29 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     }
     
     func onSpeech2Text(withRoundId roundId: String,
-                       result: String,
+                       result: NSMutableString,
                        recognizedSpeech: Bool) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
             }
             print("====onSpeech2Text:\(result) recognizedSpeech:\(recognizedSpeech)")
-            let info = MainView.Info(uuid: roundId, content: result)
+            //            result.append("123456789")
+            let info = MainView.Info(uuid: roundId, content: result.copy() as! String)
             mainView.addOrUpdateInfo(info: info)
         }
-        return .continue
+        return config.enableSTT ? .continue : .discard
     }
     
-    func onLLMResult(withRoundId roundId: String, answer: String) -> AgoraAIGCHandleResult {
+    func onLLMResult(withRoundId roundId: String, answer: NSMutableString, isRoundEnd: Bool) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
             }
-            let info = MainView.Info(uuid: "llm" + roundId, content: answer)
+            let info = MainView.Info(uuid: "llm" + roundId, content: answer.copy() as! String)
             mainView.addOrUpdateInfo(info: info)
         }
-        return .continue
+        return config.enableTTS ? .continue : .discard
     }
     
     func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int) -> AgoraAIGCHandleResult {
@@ -181,13 +197,44 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         return .continue
     }
     
+    // MARK: - MainViewDelegate
+    func mainViewDidShouldSendText(text: String) {
+        let info = MainView.Info(uuid: "\(UInt8.random(in: 0...200))", content: text)
+        mainView.addOrUpdateInfo(info: info)
+        service.pushTxtDialogue(text)
+    }
+    
     // MARK: - RtcManagerDelegate
     func rtcManagerOnCaptureAudioFrame(frame: AgoraAudioFrame) {
+        guard config.enableSTT else {
+            return
+        }
         let count = frame.samplesPerChannel * frame.channels * frame.bytesPerSample
         let data = Data(bytes: frame.buffer!, count: count)
-        service.pushSpeechDialogue(with: data, vad: 0)
+        DispatchQueue.main.async {
+            self.service.pushSpeechDialogue(with: data, vad: .nonMute)
+        }
     }
     func rtcManagerOnVadUpdate(isSpeaking: Bool) {}
     func rtcManagerOnDebug(text: String) {}
     func rtcManagerOnCreatedRenderView(view: UIView) {}
+}
+
+extension MainViewController {
+    struct Configurate {
+        let sttProviderName: String
+        let llmProviderName: String
+        let ttsProviderName: String
+        let roleId: String
+        let inputLang:AgoraAIGCLanguage
+        let outputLang:AgoraAIGCLanguage
+        let userName: String
+        let customPrompt: String?
+        let enableMultiTurnShortTermMemory: Bool
+        let speechRecognitionFiltersLength: UInt
+        let enableSTT: Bool
+        let enableTTS: Bool
+        let noiseEnv: AgoraNoiseEnvironment
+        let speechRecCompLevel: AgoraSpeechRecognitionCompletenessLevel
+    }
 }

@@ -7,10 +7,16 @@
 
 import UIKit
 
+protocol MainViewDelegate: NSObjectProtocol {
+    func mainViewDidShouldSendText(text: String)
+}
+
 class MainView: UIView, UITableViewDataSource {
     var dataList = [Info]()
-    
+    private var textField = UITextField()
+    private let sendBtn = UIButton()
     private let tableView = UITableView(frame: .zero, style: .grouped)
+    weak var delegate: MainViewDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -30,7 +36,31 @@ class MainView: UIView, UITableViewDataSource {
         tableView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
         tableView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
         tableView.heightAnchor.constraint(equalToConstant: 250).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor).isActive = true
+        tableView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor).isActive = true
+        
+        addSubview(textField)
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sendBtn)
+        sendBtn.translatesAutoresizingMaskIntoConstraints = false
+        
+        textField.borderStyle = .roundedRect
+        textField.placeholder = "请输入内容"
+        
+        textField.leftAnchor.constraint(equalTo: leftAnchor, constant: 10).isActive = true
+        textField.rightAnchor.constraint(equalTo: sendBtn.leftAnchor).isActive = true
+        textField.topAnchor.constraint(equalTo: tableView.bottomAnchor).isActive = true
+        
+        sendBtn.setTitle("发送", for: .normal)
+        sendBtn.setTitleColor(.blue, for: .normal)
+        sendBtn.backgroundColor = .green
+        
+        sendBtn.rightAnchor.constraint(equalTo: rightAnchor, constant: -10).isActive = true
+        sendBtn.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        sendBtn.centerYAnchor.constraint(equalTo: textField.centerYAnchor).isActive = true
+        sendBtn.addTarget(self, action: #selector(buttonTap(_:)), for: .touchUpInside)
+        
+        textField.isHidden = true
+        sendBtn.isHidden = true
     }
     
     private func commonInit() {
@@ -64,6 +94,16 @@ class MainView: UIView, UITableViewDataSource {
         tableView.reloadData()
         let indexPath = IndexPath(row: dataList.count - 1, section: 0)
         tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+    }
+    
+    @objc func buttonTap(_ sender: UIButton) {
+        delegate?.mainViewDidShouldSendText(text: textField.text!)
+        textField.text = ""
+    }
+    
+    func showTextField(show: Bool) {
+        textField.isHidden = !show
+        sendBtn.isHidden = !show
     }
     
     /// UITableViewDataSource

@@ -8,6 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
     struct Section {
         let title: String
         let rows: [Row]
@@ -77,12 +78,36 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         if indexPath.section == 0 {
             if indexPath.row == 0 {
-                let vc = MainViewController(sttProviderName: "xunfei", llmProviderName: "minimax", ttsProviderName: "microsoft")
+                let config = MainViewController.Configurate(sttProviderName: "xunfei",
+                                                            llmProviderName: "minimax-abab5.5-chat",
+                                                            ttsProviderName: "microsoft",
+                                                            roleId: "yunibobo-zh-CN",
+                                                            inputLang: .ZH_CN,
+                                                            outputLang: .ZH_CN,
+                                                            userName: "小李",
+                                                            customPrompt: nil,enableMultiTurnShortTermMemory: true,
+                                                            speechRecognitionFiltersLength:3,
+                                                            enableSTT: true,
+                                                            enableTTS: true,
+                                                            noiseEnv: .noise, speechRecCompLevel: .normal)
+                let vc = MainViewController(config: config)
                 navigationController?.pushViewController(vc, animated: true)
                 return
             }
             if indexPath.row == 1 {
-                let vc = MainViewController(sttProviderName: "microsoft", llmProviderName: "minimax", ttsProviderName: "elevenLabs")
+                let config = MainViewController.Configurate(sttProviderName: "xunfei",
+                                                            llmProviderName: "minimax-abab5.5-chat",
+                                                            ttsProviderName: "elevenLabs",
+                                                            roleId: "yunibobo-zh-CN",
+                                                            inputLang: .ZH_CN,
+                                                            outputLang: .ZH_CN,
+                                                            userName: "小李",
+                                                            customPrompt: nil,enableMultiTurnShortTermMemory: true,
+                                                            speechRecognitionFiltersLength:3,
+                                                            enableSTT: true,
+                                                            enableTTS: true,
+                                                            noiseEnv: .noise, speechRecCompLevel: .normal)
+                let vc = MainViewController(config: config)
                 navigationController?.pushViewController(vc, animated: true)
                 return
             }
