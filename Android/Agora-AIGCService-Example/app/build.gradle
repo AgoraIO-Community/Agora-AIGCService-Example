@@ -13,7 +13,7 @@ android {
         minSdk 23
         targetSdk 30
         versionCode 1
-        versionName "1.0.0.1019.1"
+        versionName "1.0.1.10.1123.1"
 
         flavorDimensions "channel"
 
@@ -39,7 +39,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            zipAlignEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -65,6 +64,18 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
+
+    packagingOptions {
+        exclude 'org/apache/commons/codec/language/bm/gen_approx_greeklatin.txt'
+        exclude 'org/apache/commons/codec/language/bm/gen_rules_dutch.txt'
+        exclude 'org/apache/commons/codec/language/bm/gen_exact_any.txt'
+        exclude 'org/apache/commons/codec/language/bm/gen_approx_french.txt'
+        exclude 'org/apache/commons/codec/language/bm/ash_exact_french.txt'
+        exclude 'org/apache/commons/codec/language/bm/gen_approx_polish.txt'
+        exclude 'org/apache/commons/codec/language/bm/*'
+        exclude 'org/apache/commons/codec/language/*'
+
+    }
 }
 
 dependencies {
@@ -76,13 +87,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation 'io.agora:authentication:1.6.1'
-    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'commons-codec:commons-codec:1.16.0'
 
-// https://mvnrepository.com/artifact/io.agora.rtc/agora-special-full
     implementation 'io.agora.rtc:agora-special-full:4.2.2.1'
-
-    //implementation 'com.alibaba.fastjson2:fastjson2:2.0.39'
-
 }
 
 static def releaseTime() {

@@ -157,3 +157,28 @@
 -keepnames class io.agora.* { *; }
 -keepnames interface io.agora.* { *; }
 -dontwarn io.agora.**
+
+-keep class com.microsoft.cognitiveservices.speech.** { *; }
+-keepnames class com.microsoft.cognitiveservices.speech.* { *; }
+-keepnames interface com.microsoft.cognitiveservices.speech.* { *; }
+-dontwarn com.microsoft.cognitiveservices.speech.**
+
+-keep class software.amazon.awssdk.** { *; }
+-keepnames class software.amazon.awssdk.* { *; }
+-keepnames interface software.amazon.awssdk.* { *; }
+-dontwarn software.amazon.awssdk.**
+
+-keep class io.netty.** { *; }
+-keepnames class io.netty.* { *; }
+-keepnames interface io.netty.* { *; }
+-dontwarn io.netty.**
+
+-dontwarn com.google.common.collect.**
+-dontwarn java.awt.**
+-dontwarn javax.money.**
+-dontwarn javax.xml.**
+-dontwarn org.javamoney.**
+-dontwarn org.joda.time.**
+-dontwarn springfox.documentation.**
+-dontwarn javax.naming.**
+-dontwarn org.ietf.jgss.**
