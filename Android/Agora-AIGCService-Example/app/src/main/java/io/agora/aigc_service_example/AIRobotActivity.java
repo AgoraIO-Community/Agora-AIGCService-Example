@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
@@ -13,7 +14,11 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -49,6 +54,9 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private boolean mRingBufferReady;
     private String mPreTtsRoundId;
     private final static String CHANNEL_ID = "TestAgoraAIGC";
+    private HistoryListAdapter mAiHistoryListAdapter;
+    private List<HistoryModel> mHistoryDataList;
+    private SimpleDateFormat mSdf;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -76,6 +84,12 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             mSpeechRingBuffer.clear();
         }
         mPreTtsRoundId = "";
+        mSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
+        if (null == mHistoryDataList) {
+            mHistoryDataList = new ArrayList<>();
+        } else {
+            mHistoryDataList.clear();
+        }
     }
 
     public boolean initRtc(Context context) {
@@ -90,6 +104,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
                         Log.i(TAG, "onJoinChannelSuccess channel:" + channel + " uid:" + uid + " elapsed:" + elapsed);
                         mRtcEngine.registerAudioFrameObserver(AIRobotActivity.this);
+                        mRtcEngine.muteLocalAudioStream(true);
                     }
 
                     @Override
@@ -108,17 +123,26 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     }
 
                 };
-                rtcEngineConfig.mAudioScenario = io.agora.rtc2.Constants.AudioScenario.getValue(io.agora.rtc2.Constants.AudioScenario.DEFAULT);
+                rtcEngineConfig.mAudioScenario = io.agora.rtc2.Constants.AUDIO_SCENARIO_GAME_STREAMING;
                 mRtcEngine = RtcEngine.create(rtcEngineConfig);
 
-
                 mRtcEngine.setParameters("{\"rtc.enable_debug_log\":true}");
+
+                mRtcEngine.setParameters("{\n" +
+                        "\n" +
+                        "\"che.audio.enable.nsng\":true,\n" +
+                        "\"che.audio.ains_mode\":2,\n" +
+                        "\"che.audio.ns.mode\":2,\n" +
+                        "\"che.audio.nsng.lowerBound\":80,\n" +
+                        "\"che.audio.nsng.lowerMask\":50,\n" +
+                        "\"che.audio.nsng.statisticalbound\":5,\n" +
+                        "\"che.audio.nsng.finallowermask\":30\n" +
+                        "}");
 
                 mRtcEngine.enableAudio();
                 mRtcEngine.setAudioProfile(
                         io.agora.rtc2.Constants.AUDIO_PROFILE_DEFAULT, io.agora.rtc2.Constants.AUDIO_SCENARIO_GAME_STREAMING
                 );
-                mRtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
 
 
                 mRtcEngine.setPlaybackAudioFrameParameters(16000, 1, io.agora.rtc2.Constants.RAW_AUDIO_FRAME_OP_MODE_READ_WRITE, 640);
@@ -203,6 +227,16 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     }
 
     private void initView() {
+        if (mAiHistoryListAdapter == null) {
+            mAiHistoryListAdapter = new HistoryListAdapter(getApplicationContext(), mHistoryDataList);
+            binding.aiHistoryList.setAdapter(mAiHistoryListAdapter);
+            binding.aiHistoryList.setLayoutManager(new WrapContentLinearLayoutManager(getApplicationContext()));
+            binding.aiHistoryList.addItemDecoration(new HistoryListAdapter.SpacesItemDecoration(10));
+        } else {
+            mHistoryDataList.clear();
+            mAiHistoryListAdapter.notifyDataSetChanged();
+        }
+
         binding.btnSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -318,12 +352,14 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech) {
         Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech);
+        updateHistoryList("用户发言：" + result.getData(), true, roundId, false, false);
         return HandleResult.CONTINUE;
     }
 
     @Override
     public HandleResult onLLMResult(String roundId, Data<String> answer, boolean isRoundEnd) {
-        Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer);
+        Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer + " isRoundEnd:" + isRoundEnd);
+        updateHistoryList(answer.getData(), true, roundId + "llm", true, true);
         return HandleResult.CONTINUE;
     }
 
@@ -419,6 +455,59 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     public AudioParams getEarMonitoringAudioParams() {
         return null;
+    }
+
+    private void updateHistoryList(String newMessage, boolean showUi, String sid, boolean isAppend, boolean isAi) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String date = mSdf.format(System.currentTimeMillis());
+                if (isAi) {
+                    Log.d(TAG, "[" + date + "] AI说：" + newMessage);
+                } else {
+                    Log.d(TAG, "[" + date + "]  " + newMessage);
+                }
+
+                boolean isNewLineMessage = true;
+                int updateIndex = -1;
+                if (!TextUtils.isEmpty(sid)) {
+                    for (HistoryModel historyModel : mHistoryDataList) {
+                        updateIndex++;
+                        if (sid.equals(historyModel.getSid())) {
+                            if (isAppend) {
+                                historyModel.setMessage(historyModel.getMessage() + newMessage);
+                            } else {
+                                historyModel.setMessage(newMessage);
+                            }
+                            isNewLineMessage = false;
+                            break;
+                        }
+                    }
+                }
+                if (showUi) {
+                    if (isNewLineMessage) {
+                        HistoryModel aiHistoryModel = new HistoryModel();
+                        aiHistoryModel.setDate(date);
+                        aiHistoryModel.setSid(sid);
+                        if (isAi) {
+                            aiHistoryModel.setMessage("AI]说：" + newMessage);
+                        } else {
+                            aiHistoryModel.setMessage(newMessage);
+                        }
+                        mHistoryDataList.add(aiHistoryModel);
+                        if (null != mAiHistoryListAdapter) {
+                            mAiHistoryListAdapter.notifyItemInserted(mHistoryDataList.size() - 1);
+                            binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
+                        }
+                    } else {
+                        if (null != mAiHistoryListAdapter) {
+                            mAiHistoryListAdapter.notifyItemChanged(updateIndex);
+                            binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
+                        }
+                    }
+                }
+            }
+        });
     }
 
 }

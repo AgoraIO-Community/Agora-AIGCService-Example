@@ -7,6 +7,8 @@ import io.agora.aigc.sdk.AIGCService;
 import io.agora.aigc.sdk.AIGCServiceCallback;
 import io.agora.aigc.sdk.AIGCServiceConfig;
 import io.agora.aigc.sdk.constants.Language;
+import io.agora.aigc.sdk.constants.NoiseEnvironment;
+import io.agora.aigc.sdk.constants.SpeechRecognitionCompletenessLevel;
 import io.agora.aigc.sdk.model.SceneMode;
 
 public class AIGCServiceManager {
@@ -58,6 +60,8 @@ public class AIGCServiceManager {
                 this.speechFrameChannels = 1;
                 this.speechFrameBits = 16;
             }};
+            this.noiseEnvironment = NoiseEnvironment.NOISE;
+            this.speechRecognitionCompleteLevel = SpeechRecognitionCompletenessLevel.NORMAL;
         }});
     }
 
