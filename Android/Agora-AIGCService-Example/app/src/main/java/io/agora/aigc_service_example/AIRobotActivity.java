@@ -32,6 +32,7 @@ import io.agora.aigc.sdk.constants.ServiceEvent;
 import io.agora.aigc.sdk.constants.Vad;
 import io.agora.aigc.sdk.model.Data;
 import io.agora.aigc.sdk.model.ServiceVendor;
+import io.agora.aigc.sdk.utils.RingBuffer;
 import io.agora.aigic_service_example.R;
 import io.agora.aigic_service_example.databinding.AiRobotActivityBinding;
 import io.agora.rtc2.ChannelMediaOptions;

@@ -61,7 +61,7 @@ public class AIGCServiceManager {
                 this.speechFrameBits = 16;
             }};
             this.noiseEnvironment = NoiseEnvironment.NOISE;
-            this.speechRecognitionCompleteLevel = SpeechRecognitionCompletenessLevel.NORMAL;
+            this.speechRecognitionCompletenessLevel = SpeechRecognitionCompletenessLevel.NORMAL;
         }});
     }
 
