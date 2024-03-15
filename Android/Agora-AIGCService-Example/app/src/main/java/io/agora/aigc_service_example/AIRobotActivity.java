@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,6 +59,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private HistoryListAdapter mAiHistoryListAdapter;
     private List<HistoryModel> mHistoryDataList;
     private SimpleDateFormat mSdf;
+    private boolean mAIGCServiceStarted;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -91,6 +93,8 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         } else {
             mHistoryDataList.clear();
         }
+
+        mAIGCServiceStarted = false;
     }
 
     public boolean initRtc(Context context) {
@@ -224,7 +228,8 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private void enableUi(boolean enable) {
         binding.btnSpeak.setEnabled(enable);
         binding.btnExit.setEnabled(enable);
-        binding.btnTestSendText.setEnabled(enable);
+        binding.btnSendTextLlm.setEnabled(enable);
+        binding.btnSendMessagesLlm.setEnabled(enable);
     }
 
     private void initView() {
@@ -257,15 +262,6 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             }
         });
 
-        binding.btnTestSendText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mIsSpeaking = true;
-                AIGCServiceManager.getInstance().getAIGCService().start();
-                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？");
-            }
-        });
-
 
         binding.btnExit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -274,6 +270,44 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                 AIGCServiceManager.getInstance().destroy();
             }
         });
+
+        binding.btnSendTextLlm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mAIGCServiceStarted) {
+                    Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？", true);
+            }
+        });
+
+        binding.btnSendMessagesLlm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mAIGCServiceStarted) {
+                    Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                AIGCServiceManager.getInstance().getAIGCService().pushMessagesToLLM("[{\n" +
+                        "\t\t\"role\": \"user\",\n" +
+                        "\t\t\"content\": \"你想去郊游吗？\"\n" +
+                        "\t}, {\n" +
+                        "\t\t\"role\": \"assistant\",\n" +
+                        "\t\t\"content\": \"好啊！我们什么时候去？\"\n" +
+                        "\t},\n" +
+                        "\t{\n" +
+                        "\t\t\"role\": \"user\",\n" +
+                        "\t\t\"content\": \"周日？\"\n" +
+                        "\t}\n" +
+                        "]", "{\n" +
+                        "\t\"temperature\": 0.5,\n" +
+                        "\t\"presence_penalty\": 0.9,\n" +
+                        "\t\"frequency_penalty\": 0.9\n" +
+                        "}", true);
+            }
+        });
+
     }
 
     public boolean updateRoleSpeak(boolean isSpeak) {
@@ -342,31 +376,33 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(0));
             AIGCServiceManager.getInstance().getAIGCService().setServiceVendor(serviceVendor);
         } else if (event == ServiceEvent.START && code == ServiceCode.SUCCESS) {
-
+            mAIGCServiceStarted = true;
         } else if (event == ServiceEvent.STOP && code == ServiceCode.SUCCESS) {
-
+            mAIGCServiceStarted = false;
         } else if (event == ServiceEvent.DESTROY && code == ServiceCode.SUCCESS) {
 
         }
     }
 
     @Override
-    public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech) {
-        Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech);
+    public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech, ServiceCode code) {
+        Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech + " code:" + code);
         updateHistoryList("用户发言：" + result.getData(), true, roundId, false, false);
         return HandleResult.CONTINUE;
     }
 
+
     @Override
-    public HandleResult onLLMResult(String roundId, Data<String> answer, boolean isRoundEnd) {
-        Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer + " isRoundEnd:" + isRoundEnd);
+    public HandleResult onLLMResult(String roundId, Data<String> answer, boolean isRoundEnd, int estimatedResponseTokens, ServiceCode code) {
+        Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer + " isRoundEnd:" + isRoundEnd + " estimatedResponseTokens:" + estimatedResponseTokens + " code:" + code);
         updateHistoryList(answer.getData(), true, roundId + "llm", true, true);
         return HandleResult.CONTINUE;
     }
 
+
     @Override
-    public HandleResult onText2SpeechResult(String roundId, Data<byte[]> voice, int sampleRates, int channels, int bits) {
-        Log.i(TAG, "onText2SpeechResult roundId:" + roundId + " voice:" + voice + " sampleRates:" + sampleRates + " channels:" + channels + " bits:" + bits);
+    public HandleResult onText2SpeechResult(String roundId, Data<byte[]> voice, int sampleRates, int channels, int bits, ServiceCode code) {
+        Log.i(TAG, "onText2SpeechResult roundId:" + roundId + " voice:" + voice + " sampleRates:" + sampleRates + " channels:" + channels + " bits:" + bits + " code:" + code);
         if (!mPreTtsRoundId.equalsIgnoreCase(roundId)) {
             mSpeechRingBuffer.clear();
             mRingBufferReady = false;
@@ -392,7 +428,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     public boolean onRecordAudioFrame(String channelId, int type, int samplesPerChannel,
                                       int bytesPerSample, int channels, int samplesPerSec, ByteBuffer buffer,
                                       long renderTimeMs, int avsync_type) {
-        if (mIsSpeaking) {
+        if (mIsSpeaking && mAIGCServiceStarted) {
             int length = buffer.remaining();
             byte[] origin = new byte[length];
             buffer.get(origin);
@@ -411,8 +447,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             byte[] bytes = getSpeechVoiceData(buffer.capacity());
 
             if (null != bytes) {
-                final byte[] voices = bytes;
-                buffer.put(voices, 0, buffer.capacity());
+                buffer.put(bytes, 0, buffer.capacity());
             }
         }
         return true;
@@ -510,5 +545,4 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             }
         });
     }
-
 }

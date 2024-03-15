@@ -15,16 +15,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/btn_test_send_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:text="@string/test_send_text"
-        app:layout_constraintStart_toEndOf="@id/btn_speak"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-    <Button
         android:id="@+id/btn_exit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -32,6 +22,26 @@
         android:text="@string/exit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn_send_text_llm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/send_text_llm"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
+
+    <Button
+        android:id="@+id/btn_send_messages_llm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:text="@string/send_messages_llm"
+        app:layout_constraintStart_toEndOf="@id/btn_send_text_llm"
+        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/ai_history_list"
@@ -44,5 +54,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_speak" />
+        app:layout_constraintTop_toBottomOf="@id/btn_send_text_llm" />
 </androidx.constraintlayout.widget.ConstraintLayout>
