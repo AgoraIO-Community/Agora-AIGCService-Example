@@ -182,3 +182,7 @@
 -dontwarn springfox.documentation.**
 -dontwarn javax.naming.**
 -dontwarn org.ietf.jgss.**
+-dontwarn javax.annotation.**
+-dontwarn javax.ws.rs.**
+-dontwarn org.glassfish.jersey.**
+-dontwarn org.slf4j.impl.**

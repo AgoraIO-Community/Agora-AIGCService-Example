@@ -74,12 +74,24 @@ android {
         exclude 'org/apache/commons/codec/language/bm/gen_approx_polish.txt'
         exclude 'org/apache/commons/codec/language/bm/*'
         exclude 'org/apache/commons/codec/language/*'
-
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/FastDoubleParser-LICENSE'
+        exclude 'META-INF/FastDoubleParser-NOTICE'
+        exclude 'META-INF/bigint-LICENSE'
+        exclude 'META-INF/io.netty.versions.properties'
+        exclude 'org/apache/commons/codec/language/bm/*'
+        exclude 'org/apache/commons/codec/language/*'
     }
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+    implementation('com.github.winskyan:Agora-AIGCService:1.2.0-alpha-11') {
+        exclude group: 'io.jsonwebtoken', module: 'jjwt'
+    }
+
+
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     testImplementation 'junit:junit:4.13.2'
