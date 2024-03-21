@@ -35,16 +35,8 @@ class RtcManager: NSObject {
         agoraKit.setClientRole(.broadcaster)
         agoraKit.enableAudioVolumeIndication(50, smooth: 3, reportVad: true)
         agoraKit.setAudioScenario(.gameStreaming)
-        
-        agoraKit.setParameters("{\"rtc.debug.enable\":true}")
-        // 开启AI降噪soft模式
-        agoraKit.setParameters("{\"che.audio.enable.nsng\": true}")
-        agoraKit.setParameters("{\"che.audio.ains_mode\": 2}")
-        agoraKit.setParameters("{\"che.audio.ns_mode\": 2}")
-        agoraKit.setParameters("{\"che.audio.nsng.lowerBound\": 80}")
-        agoraKit.setParameters("{\"che.audio.nsng.lowerMask\": 50}")
-        agoraKit.setParameters("{\"che.audio.nsng.statisitcalbound\": 5}")
-        agoraKit.setParameters("{\"che.audio.nsng.finallowermask\": 30}")
+        agoraKit.disableVideo()
+        agoraKit.enableLocalVideo(false)
     }
     
     func joinChannel() {
@@ -54,6 +46,10 @@ class RtcManager: NSObject {
                                            channelName: Config.channelId)
         let option = AgoraRtcChannelMediaOptions()
         option.clientRoleType = .broadcaster
+        option.publishMicrophoneTrack = true
+        option.publishCameraTrack = false
+        option.autoSubscribeAudio = false
+        option.autoSubscribeVideo = false
         agoraKit.setAudioFrameDelegate(self)
         agoraKit.enableAudio()
         let ret = agoraKit.joinChannel(byToken: token,
@@ -68,10 +64,12 @@ class RtcManager: NSObject {
     
     func startRecord() {
         isRecord = true
+        agoraKit.enableLocalAudio(true)
     }
     
     func stopRecord() {
         isRecord = false
+        agoraKit.enableLocalAudio(false)
     }
     
     func setPlayData(data: Data) {
@@ -92,6 +90,7 @@ extension RtcManager: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
         let text = "didJoinChannel withUid \(uid)"
         Log.info(text: text, tag: logTag)
+        engine.muteLocalAudioStream(true)
     }
 }
 

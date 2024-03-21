@@ -18,9 +18,9 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "269F84732A779089003D50D9"
-               BuildableName = "AIGC-ExamplesTests.xctest"
-               BlueprintName = "AIGC-ExamplesTests"
+               BlueprintIdentifier = "2645DBBD2A9C93FE00BEFB5B"
+               BuildableName = "AlgorithmTests.xctest"
+               BlueprintName = "AlgorithmTests"
                ReferencedContainer = "container:AIGC-Examples.xcodeproj">
             </BuildableReference>
          </TestableReference>
