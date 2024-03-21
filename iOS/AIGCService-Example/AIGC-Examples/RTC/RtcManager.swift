@@ -20,6 +20,7 @@ class RtcManager: NSObject {
     fileprivate var isRecord = false
     private var soundQueue = Queue<Data>()
     fileprivate let logTag = "RtcManager"
+    var channelId: String = ""
     
     deinit {
         agoraKit.leaveChannel()
@@ -40,10 +41,11 @@ class RtcManager: NSObject {
     }
     
     func joinChannel() {
+        channelId = generateDate()
         let token = TokenBuilder.rtcToken2(Config.appId,
                                            appCertificate: Config.certificate,
                                            uid: Int32(Config.hostUid),
-                                           channelName: Config.channelId)
+                                           channelName: channelId)
         let option = AgoraRtcChannelMediaOptions()
         option.clientRoleType = .broadcaster
         option.publishMicrophoneTrack = true
@@ -53,7 +55,7 @@ class RtcManager: NSObject {
         agoraKit.setAudioFrameDelegate(self)
         agoraKit.enableAudio()
         let ret = agoraKit.joinChannel(byToken: token,
-                                       channelId: Config.channelId,
+                                       channelId: channelId,
                                        uid: Config.hostUid,
                                        mediaOptions: option)
         if ret != 0 {
@@ -74,6 +76,13 @@ class RtcManager: NSObject {
     
     func setPlayData(data: Data) {
         soundQueue.enqueue(data)
+    }
+    
+    func generateDate() -> String {
+        let date = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "YYYYMMddHHmmss"
+        return formatter.string(from: date) + "\(UInt8.random(in: 0...99))"
     }
 }
 
@@ -169,6 +178,7 @@ extension RtcManager: AgoraAudioFrameDelegate {
         return true
     }
 }
+
 
 struct Queue<T> {
     private var elements: [T] = []

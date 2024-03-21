@@ -8,9 +8,8 @@
 import Foundation
 
 struct Config {
-    static let channelId = "aigcsample"
+    static let channelId = "gpt001"
     static let hostUid: UInt = 0
-    static let appId = <#appid#>
-    static let certificate = <#certificate#>
+    static let appId = <#String#>
+    static let certificate = <#String#>
 }
-

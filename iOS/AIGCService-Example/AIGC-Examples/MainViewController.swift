@@ -67,6 +67,8 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
                                         speechFrameBits: 16,
                                         speechFrameSampleRates: 16000,
                                         speechFrameChannels: 1)
+        let paths = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true)
+        let cachesPath = paths.first!
         let config = AgoraAIGCConfigure(appId: appId,
                                         rtmToken: token,
                                         userId: uid,
@@ -131,6 +133,24 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
                 break
             }
         }
+        let useCustomJson = false
+        if useCustomJson {
+            let accountInJsonSTT = "{\"vendorName\":\"microsoft\",\"key\":\"59e03d7b53714f4d8595d7590f0854a2\",\"reserved\":\"eastasia\"}"
+            let sttC = AgoraAIGCSTTVendor(accountInJson: accountInJsonSTT, id: stt!.id)
+            let customJosnLLM = "{\"vendorName\":\"minimax\",\"appId\":\"1682318474041774\",\"key\":\"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoiYWdvcmEtZ3B0IiwiU3ViamVjdElEIjoiMTY4MjMxODQ3NDg2MDkyNCIsIlBob25lIjoiTVRVNU5URTROelUxTlRFPSIsIkdyb3VwSUQiOiIxNjgyMzE4NDc0MDQxNzc0IiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoicGF1bGR1Y2dAMTYzLmNvbSIsIkNyZWF0ZVRpbWUiOiIyMDIzLTA3LTE5IDE2OjU5OjQ1IiwiaXNzIjoibWluaW1heCJ9.qrC72KMpO3Xv6KJGR0bZc8xOx3GGCwbwh81D_cxspdQzKgDLg2tb92sipW1VtwwyVgonXjrZ8QkvRwHUW1Pw2x_I_SBypVDKSi7Pk-P-FsamXrLlNmFdJNfTi5z35ZmxTkcbfxrX8Y3qmeV5CdwUb-5FUgOOAAtJAiNh-1tAFwzycgJ59Z5E9AtW4XBObmMltwO8TWKjMf9E787MhLQLL_9MEkEoKdZnvzTdfvuA2gfuNxg6-a5ZNDG_VOe6tNo8bkmHedqd-_wcJic3hZAwhZ9EspjaOguCtnbYtcOp-ksptwyNOGHSCK1POfgpL2ZxBCk5pADqu_sUBYlxYJokyg\"}"
+            let llmC = AgoraAIGCLLMVendor(accountInJson: customJosnLLM, id: llm!.id)
+            
+            let customJosnTTS = "{\"vendorName\":\"microsoft\",\"key\":\"59e03d7b53714f4d8595d7590f0854a2\",\"reserved\":\"eastasia\"}"
+            
+            let ttsC = AgoraAIGCTTSVendor(accountInJson: customJosnTTS,
+                                          id: tts!.id,
+                                          voiceNameValue:
+                                            tts!.voiceNameValue,
+                                          voiceStyle: tts!.voiceStyle)
+            return AgoraAIGCServiceVendor(stt: sttC,
+                                          llm: llmC,
+                                          tts: ttsC)
+        }
         
         return AgoraAIGCServiceVendor(stt: stt!,
                                       llm: llm!,
@@ -163,7 +183,8 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     
     func onSpeech2Text(withRoundId roundId: String,
                        result: NSMutableString,
-                       recognizedSpeech: Bool) -> AgoraAIGCHandleResult {
+                       recognizedSpeech: Bool,
+                       code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -176,7 +197,11 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         return config.enableSTT ? .continue : .discard
     }
     
-    func onLLMResult(withRoundId roundId: String, answer: NSMutableString, isRoundEnd: Bool) -> AgoraAIGCHandleResult {
+    func onLLMResult(withRoundId roundId: String,
+                     answer: NSMutableString,
+                     isRoundEnd: Bool,
+                     estimatedResponseTokens tokens: UInt,
+                     code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -187,7 +212,12 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         return config.enableTTS ? .continue : .discard
     }
     
-    func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int) -> AgoraAIGCHandleResult {
+    func onText2SpeechResult(withRoundId roundId: String,
+                             voice: Data,
+                             sampleRates: Int,
+                             channels: Int,
+                             bits: Int,
+                             code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -201,7 +231,7 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     func mainViewDidShouldSendText(text: String) {
         let info = MainView.Info(uuid: "\(UInt8.random(in: 0...200))", content: text)
         mainView.addOrUpdateInfo(info: info)
-        service.pushTxtDialogue(text)
+        service.pushTxtDialogue(text, interruptDialogue: false)
     }
     
     // MARK: - RtcManagerDelegate
