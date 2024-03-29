@@ -87,7 +87,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
-    implementation('com.github.winskyan:Agora-AIGCService:1.2.0-alpha-13') {
+    implementation('com.github.winskyan:Agora-AIGCService:1.2.0-alpha-20') {
         exclude group: 'io.jsonwebtoken', module: 'jjwt'
     }
 

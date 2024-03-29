@@ -28,12 +28,15 @@ import java.util.concurrent.TimeUnit;
 
 import io.agora.aigc.sdk.AIGCServiceCallback;
 import io.agora.aigc.sdk.constants.HandleResult;
+import io.agora.aigc.sdk.constants.STTMode;
 import io.agora.aigc.sdk.constants.ServiceCode;
 import io.agora.aigc.sdk.constants.ServiceEvent;
+import io.agora.aigc.sdk.constants.SpeechState;
 import io.agora.aigc.sdk.constants.Vad;
 import io.agora.aigc.sdk.model.Data;
 import io.agora.aigc.sdk.model.ServiceVendor;
 import io.agora.aigc.sdk.utils.RingBuffer;
+import io.agora.aigc.sdk.utils.Utils;
 import io.agora.aigic_service_example.R;
 import io.agora.aigic_service_example.databinding.AiRobotActivityBinding;
 import io.agora.rtc2.ChannelMediaOptions;
@@ -278,7 +281,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
                     return;
                 }
-                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？", true);
+                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？", Utils.getSessionId());
             }
         });
 
@@ -304,7 +307,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                         "\t\"temperature\": 0.5,\n" +
                         "\t\"presence_penalty\": 0.9,\n" +
                         "\t\"frequency_penalty\": 0.9\n" +
-                        "}", true);
+                        "}", Utils.getSessionId());
             }
         });
 
@@ -375,6 +378,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             serviceVendor.setLlmVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getLlmList().get(0));
             serviceVendor.setTtsVendor(AIGCServiceManager.getInstance().getAIGCService().getServiceVendors().getTtsList().get(0));
             AIGCServiceManager.getInstance().getAIGCService().setServiceVendor(serviceVendor);
+            AIGCServiceManager.getInstance().getAIGCService().setSTTMode(STTMode.FREESTYLE);
         } else if (event == ServiceEvent.START && code == ServiceCode.SUCCESS) {
             mAIGCServiceStarted = true;
         } else if (event == ServiceEvent.STOP && code == ServiceCode.SUCCESS) {
@@ -425,6 +429,13 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     }
 
     @Override
+    public void onSpeechStateChange(SpeechState state) {
+        if (SpeechState.START == state) {
+            AIGCServiceManager.getInstance().getAIGCService().interrupt();
+        }
+    }
+
+    @Override
     public boolean onRecordAudioFrame(String channelId, int type, int samplesPerChannel,
                                       int bytesPerSample, int channels, int samplesPerSec, ByteBuffer buffer,
                                       long renderTimeMs, int avsync_type) {
@@ -434,7 +445,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             buffer.get(origin);
             buffer.flip();
 
-            AIGCServiceManager.getInstance().getAIGCService().pushSpeechDialogue(origin, Vad.UNKNOWN);
+            AIGCServiceManager.getInstance().getAIGCService().pushSpeechDialogue(origin, Vad.UNKNOWN, false);
         }
         return false;
     }

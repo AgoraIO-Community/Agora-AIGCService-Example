@@ -163,11 +163,6 @@
 -keepnames interface com.microsoft.cognitiveservices.speech.* { *; }
 -dontwarn com.microsoft.cognitiveservices.speech.**
 
--keep class software.amazon.awssdk.** { *; }
--keepnames class software.amazon.awssdk.* { *; }
--keepnames interface software.amazon.awssdk.* { *; }
--dontwarn software.amazon.awssdk.**
-
 -keep class io.netty.** { *; }
 -keepnames class io.netty.* { *; }
 -keepnames interface io.netty.* { *; }
@@ -186,3 +181,9 @@
 -dontwarn javax.ws.rs.**
 -dontwarn org.glassfish.jersey.**
 -dontwarn org.slf4j.impl.**
+
+-dontwarn org.apache.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.eclipse.jetty.**
+-dontwarn org.jetbrains.**
+-dontwarn reactor.blockhound.integration.**
