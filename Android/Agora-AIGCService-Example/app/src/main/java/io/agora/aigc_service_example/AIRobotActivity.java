@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.agora.aigc.sdk.AIGCServiceCallback;
+import io.agora.aigc.sdk.constants.Constants;
 import io.agora.aigc.sdk.constants.HandleResult;
 import io.agora.aigc.sdk.constants.STTMode;
 import io.agora.aigc.sdk.constants.ServiceCode;
@@ -431,7 +432,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     public void onSpeechStateChange(SpeechState state) {
         if (SpeechState.START == state) {
-            AIGCServiceManager.getInstance().getAIGCService().interrupt();
+            AIGCServiceManager.getInstance().getAIGCService().interrupt(Constants.SERVICE_TTS | Constants.SERVICE_LLM);
         }
     }
 
@@ -475,7 +476,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     }
 
     @Override
-    public boolean onPlaybackAudioFrameBeforeMixing(String channelId, int userId, int type, int samplesPerChannel, int bytesPerSample, int channels, int samplesPerSec, ByteBuffer buffer, long renderTimeMs, int avsync_type) {
+    public boolean onPlaybackAudioFrameBeforeMixing(String channelId, int userId, int type, int samplesPerChannel, int bytesPerSample, int channels, int samplesPerSec, ByteBuffer buffer, long renderTimeMs, int avsync_type, int rtpTimestamp) {
         return false;
     }
 
