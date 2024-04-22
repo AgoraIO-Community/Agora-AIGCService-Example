@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 public class HistoryModel {
     private String date;
     private String sid;
+    private String title;
     private String message;
 
     public String getDate() {
@@ -23,6 +24,14 @@ public class HistoryModel {
         this.sid = sid;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getMessage() {
         return message;
     }
@@ -37,6 +46,7 @@ public class HistoryModel {
         return "HistoryModel{" +
                 "date='" + date + '\'' +
                 ", sid='" + sid + '\'' +
+                ", title='" + title + '\'' +
                 ", message='" + message + '\'' +
                 '}';
     }

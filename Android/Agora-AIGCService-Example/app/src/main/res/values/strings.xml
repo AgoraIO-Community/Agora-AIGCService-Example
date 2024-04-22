@@ -4,5 +4,6 @@
     <string name="end_speak">结束语聊</string>
     <string name="send_text_llm">发送文本到LLM</string>
     <string name="send_messages_llm">发送Messages到LLM</string>
+    <string name="send_text_tts">发送文本到TTS</string>
     <string name="exit">退出</string>
 </resources>

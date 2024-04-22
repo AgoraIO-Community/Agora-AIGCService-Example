@@ -64,6 +64,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     private List<HistoryModel> mHistoryDataList;
     private SimpleDateFormat mSdf;
     private boolean mAIGCServiceStarted;
+    private boolean mJoinChannelSuccess;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -99,6 +100,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         }
 
         mAIGCServiceStarted = false;
+        mJoinChannelSuccess = false;
     }
 
     public boolean initRtc(Context context) {
@@ -112,6 +114,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     @Override
                     public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
                         Log.i(TAG, "onJoinChannelSuccess channel:" + channel + " uid:" + uid + " elapsed:" + elapsed);
+                        mJoinChannelSuccess = true;
                         mRtcEngine.registerAudioFrameObserver(AIRobotActivity.this);
                         mRtcEngine.muteLocalAudioStream(true);
                     }
@@ -119,6 +122,8 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     @Override
                     public void onLeaveChannel(RtcStats stats) {
                         Log.i(TAG, "onLeaveChannel stats:" + stats);
+                        mJoinChannelSuccess = false;
+                        AIGCServiceManager.getInstance().destroy();
                     }
 
                     @Override
@@ -253,6 +258,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                 if (mIsSpeaking) {
                     mIsSpeaking = false;
                     binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.start_speak));
+                    binding.btnExit.setEnabled(true);
                     updateRoleSpeak(false);
                     AIGCServiceManager.getInstance().getAIGCService().stop();
                 } else {
@@ -260,6 +266,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     mSpeechRingBuffer.clear();
                     mRingBufferReady = false;
                     binding.btnSpeak.setText(AIRobotActivity.this.getResources().getString(R.string.end_speak));
+                    binding.btnExit.setEnabled(false);
                     updateRoleSpeak(true);
                     AIGCServiceManager.getInstance().getAIGCService().start();
                 }
@@ -271,7 +278,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             @Override
             public void onClick(View v) {
                 enableUi(false);
-                AIGCServiceManager.getInstance().destroy();
+                exit();
             }
         });
 
@@ -282,7 +289,14 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
                     return;
                 }
-                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue("你叫什么名字？", Utils.getSessionId());
+                if (TextUtils.isEmpty(binding.etTextLlm.getText().toString())) {
+                    Toast.makeText(AIRobotActivity.this, "请输入文本", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                AIGCServiceManager.getInstance().getAIGCService().interrupt(Constants.SERVICE_TTS | Constants.SERVICE_LLM);
+                String roundId = Utils.getSessionId();
+                updateHistoryList(roundId, "用户发言：", binding.etTextLlm.getText().toString(), false);
+                AIGCServiceManager.getInstance().getAIGCService().pushTxtDialogue(binding.etTextLlm.getText().toString(), roundId);
             }
         });
 
@@ -293,6 +307,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
                     return;
                 }
+                AIGCServiceManager.getInstance().getAIGCService().interrupt(Constants.SERVICE_TTS | Constants.SERVICE_LLM);
                 AIGCServiceManager.getInstance().getAIGCService().pushMessagesToLLM("[{\n" +
                         "\t\t\"role\": \"user\",\n" +
                         "\t\t\"content\": \"你想去郊游吗？\"\n" +
@@ -312,6 +327,24 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
             }
         });
 
+        binding.btnSendTextTts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mAIGCServiceStarted) {
+                    Toast.makeText(AIRobotActivity.this, "请先开启语聊", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (TextUtils.isEmpty(binding.etTextTts.getText().toString())) {
+                    Toast.makeText(AIRobotActivity.this, "请输入文本", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                AIGCServiceManager.getInstance().getAIGCService().interrupt(Constants.SERVICE_TTS | Constants.SERVICE_LLM);
+                String roundId = Utils.getSessionId();
+                updateHistoryList(roundId, "播放语音：", binding.etTextTts.getText().toString(), false);
+                AIGCServiceManager.getInstance().getAIGCService().pushTxtToTTS(binding.etTextTts.getText().toString(), roundId);
+            }
+        });
+
     }
 
     public boolean updateRoleSpeak(boolean isSpeak) {
@@ -326,7 +359,18 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        AIGCServiceManager.getInstance().destroy();
+
+    }
+
+    private void exit() {
+        if (mJoinChannelSuccess) {
+            mRtcEngine.leaveChannel();
+            RtcEngine.destroy();
+        } else {
+            RtcEngine.destroy();
+            AIGCServiceManager.getInstance().destroy();
+        }
+
     }
 
     private byte[] getSpeechVoiceData(int length) {
@@ -385,14 +429,14 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         } else if (event == ServiceEvent.STOP && code == ServiceCode.SUCCESS) {
             mAIGCServiceStarted = false;
         } else if (event == ServiceEvent.DESTROY && code == ServiceCode.SUCCESS) {
-
+            finish();
         }
     }
 
     @Override
     public HandleResult onSpeech2TextResult(String roundId, Data<String> result, boolean isRecognizedSpeech, ServiceCode code) {
         Log.i(TAG, "onSpeech2TextResult roundId:" + roundId + " result:" + result + " isRecognizedSpeech:" + isRecognizedSpeech + " code:" + code);
-        updateHistoryList("用户发言：" + result.getData(), true, roundId, false, false);
+        updateHistoryList(roundId + "stt", "用户发言：", result.getData(), false);
         return HandleResult.CONTINUE;
     }
 
@@ -400,7 +444,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     public HandleResult onLLMResult(String roundId, Data<String> answer, boolean isRoundEnd, int estimatedResponseTokens, ServiceCode code) {
         Log.i(TAG, "onLLMResult roundId:" + roundId + " answer:" + answer + " isRoundEnd:" + isRoundEnd + " estimatedResponseTokens:" + estimatedResponseTokens + " code:" + code);
-        updateHistoryList(answer.getData(), true, roundId + "llm", true, true);
+        updateHistoryList(roundId + "llm", "AI说：", answer.getData(), true);
         return HandleResult.CONTINUE;
     }
 
@@ -431,6 +475,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
 
     @Override
     public void onSpeechStateChange(SpeechState state) {
+        Log.i(TAG, "onSpeechStateChange state:" + state);
         if (SpeechState.START == state) {
             AIGCServiceManager.getInstance().getAIGCService().interrupt(Constants.SERVICE_TTS | Constants.SERVICE_LLM);
         }
@@ -505,16 +550,11 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         return null;
     }
 
-    private void updateHistoryList(String newMessage, boolean showUi, String sid, boolean isAppend, boolean isAi) {
+    private void updateHistoryList(String sid, String title, String message, boolean isAppend) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 String date = mSdf.format(System.currentTimeMillis());
-                if (isAi) {
-                    Log.d(TAG, "[" + date + "] AI说：" + newMessage);
-                } else {
-                    Log.d(TAG, "[" + date + "]  " + newMessage);
-                }
 
                 boolean isNewLineMessage = true;
                 int updateIndex = -1;
@@ -523,35 +563,32 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                         updateIndex++;
                         if (sid.equals(historyModel.getSid())) {
                             if (isAppend) {
-                                historyModel.setMessage(historyModel.getMessage() + newMessage);
+                                historyModel.setMessage(historyModel.getMessage() + message);
                             } else {
-                                historyModel.setMessage(newMessage);
+                                historyModel.setMessage(message);
                             }
+                            historyModel.setTitle(title);
                             isNewLineMessage = false;
                             break;
                         }
                     }
                 }
-                if (showUi) {
-                    if (isNewLineMessage) {
-                        HistoryModel aiHistoryModel = new HistoryModel();
-                        aiHistoryModel.setDate(date);
-                        aiHistoryModel.setSid(sid);
-                        if (isAi) {
-                            aiHistoryModel.setMessage("AI]说：" + newMessage);
-                        } else {
-                            aiHistoryModel.setMessage(newMessage);
-                        }
-                        mHistoryDataList.add(aiHistoryModel);
-                        if (null != mAiHistoryListAdapter) {
-                            mAiHistoryListAdapter.notifyItemInserted(mHistoryDataList.size() - 1);
-                            binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
-                        }
-                    } else {
-                        if (null != mAiHistoryListAdapter) {
-                            mAiHistoryListAdapter.notifyItemChanged(updateIndex);
-                            binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
-                        }
+
+                if (isNewLineMessage) {
+                    HistoryModel aiHistoryModel = new HistoryModel();
+                    aiHistoryModel.setDate(date);
+                    aiHistoryModel.setTitle(title);
+                    aiHistoryModel.setSid(sid);
+                    aiHistoryModel.setMessage(message);
+                    mHistoryDataList.add(aiHistoryModel);
+                    if (null != mAiHistoryListAdapter) {
+                        mAiHistoryListAdapter.notifyItemInserted(mHistoryDataList.size() - 1);
+                        binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
+                    }
+                } else {
+                    if (null != mAiHistoryListAdapter) {
+                        mAiHistoryListAdapter.notifyItemChanged(updateIndex);
+                        binding.aiHistoryList.scrollToPosition(mAiHistoryListAdapter.getDataList().size() - 1);
                     }
                 }
             }

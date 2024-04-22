@@ -2,7 +2,10 @@
 
 ### Step
 
-1. Download the SDK, then copy the  `*.aar` to [android/app/libs](app/libs)
+1. Integrated the SDK.For example:
+```mk
+implementation('io.github.winskyan:Agora-AIGCService:1.2.0-alpha-26')
+```
 
 2. Update the configuration which in local.properties.For example:
 ```mk

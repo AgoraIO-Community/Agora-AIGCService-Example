@@ -13,7 +13,7 @@ android {
         minSdk 23
         targetSdk 30
         versionCode 1
-        versionName "1.120.0315.1"
+        versionName "1.120.0422.1"
 
         flavorDimensions "channel"
 
@@ -66,13 +66,6 @@ android {
     }
 
     packagingOptions {
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_greeklatin.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_rules_dutch.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_exact_any.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_french.txt'
-        exclude 'org/apache/commons/codec/language/bm/ash_exact_french.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_polish.txt'
-        exclude 'org/apache/commons/codec/language/bm/*'
         exclude 'org/apache/commons/codec/language/*'
         exclude 'META-INF/INDEX.LIST'
         exclude 'META-INF/DEPENDENCIES'
@@ -80,7 +73,6 @@ android {
         exclude 'META-INF/FastDoubleParser-NOTICE'
         exclude 'META-INF/bigint-LICENSE'
         exclude 'META-INF/io.netty.versions.properties'
-        exclude 'org/apache/commons/codec/language/bm/*'
         exclude 'org/apache/commons/codec/language/*'
     }
 }
@@ -95,7 +87,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
 
-    implementation('io.github.winskyan:Agora-AIGCService:1.2.0-alpha-24') {
+    implementation('io.github.winskyan:Agora-AIGCService:1.2.0-alpha-26') {
         exclude group: 'io.jsonwebtoken', module: 'jjwt'
     }
 
