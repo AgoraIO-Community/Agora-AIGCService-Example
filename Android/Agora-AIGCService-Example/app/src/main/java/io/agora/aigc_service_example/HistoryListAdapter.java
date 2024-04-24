@@ -39,7 +39,7 @@ public class HistoryListAdapter extends RecyclerView.Adapter<HistoryListAdapter.
         if (null != mDataList) {
             holder.layoutView.setBackgroundColor(position % 2 == 0 ? ContextCompat.getColor(mContext, R.color.history_bg_color) : Color.WHITE);
             HistoryModel aiHistoryModel = mDataList.get(position);
-            holder.mesasge.setText(String.format("[%s]%s", aiHistoryModel.getDate(), aiHistoryModel.getMessage()));
+            holder.mesasge.setText(String.format("[%s]%s%s", aiHistoryModel.getDate(), aiHistoryModel.getTitle(), aiHistoryModel.getMessage()));
         }
     }
 
@@ -83,9 +83,8 @@ public class HistoryListAdapter extends RecyclerView.Adapter<HistoryListAdapter.
             outRect.bottom = space;
 
             // Add top margin only for the first item to avoid double space between items
-            if (parent.getChildAdapterPosition(view) == 0) {
+            if (parent.getChildAdapterPosition(view) == 0)
                 outRect.top = space;
-            }
         }
     }
 }

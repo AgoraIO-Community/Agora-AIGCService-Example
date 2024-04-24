@@ -13,7 +13,7 @@ android {
         minSdk 23
         targetSdk 30
         versionCode 1
-        versionName "1.110.0129.1"
+        versionName "1.120.0422.1"
 
         flavorDimensions "channel"
 
@@ -66,30 +66,35 @@ android {
     }
 
     packagingOptions {
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_greeklatin.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_rules_dutch.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_exact_any.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_french.txt'
-        exclude 'org/apache/commons/codec/language/bm/ash_exact_french.txt'
-        exclude 'org/apache/commons/codec/language/bm/gen_approx_polish.txt'
-        exclude 'org/apache/commons/codec/language/bm/*'
         exclude 'org/apache/commons/codec/language/*'
-
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/FastDoubleParser-LICENSE'
+        exclude 'META-INF/FastDoubleParser-NOTICE'
+        exclude 'META-INF/bigint-LICENSE'
+        exclude 'META-INF/io.netty.versions.properties'
+        exclude 'org/apache/commons/codec/language/*'
     }
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
+
+    implementation('io.github.winskyan:Agora-AIGCService:1.2.0') {
+        exclude group: 'io.jsonwebtoken', module: 'jjwt'
+    }
+
     implementation 'io.agora:authentication:1.6.1'
     implementation 'commons-codec:commons-codec:1.16.0'
 
-    implementation 'io.agora.rtc:agora-special-full:4.2.2.1'
+    implementation("io.agora.rtc:agora-special-voice:4.2.6.8")
 }
 
 static def releaseTime() {

@@ -36,6 +36,7 @@ public class AIGCServiceManager {
         Log.d(TAG, "initAIGCService");
         if (null == mAIGCService) {
             mAIGCService = AIGCService.create();
+            Log.d(TAG, "create AIGCService version:" + AIGCService.getVersion());
         }
         mAIGCService.initialize(new AIGCServiceConfig() {{
             this.context = onContext;
