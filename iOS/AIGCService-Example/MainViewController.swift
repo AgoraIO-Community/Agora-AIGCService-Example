@@ -140,6 +140,12 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     
     // MARK: - AIGCServiceDelegate
     
+    func onSpeechStateChange(_ state: AgoraAIGCServiceSpeechState) {
+        if state == .stateStart {
+            service.interrupt(.TTS)
+        }
+    }
+    
     func onEventResult(with event: AgoraAIGCServiceEvent, code: AgoraAIGCServiceCode, message: String?) {
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
@@ -161,22 +167,27 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         }
     }
     
-    func onSpeech2Text(withRoundId roundId: String,
-                       result: NSMutableString,
-                       recognizedSpeech: Bool) -> AgoraAIGCHandleResult {
+    func onSpeech2Text(withRoundId roundId: String, result: NSMutableString, recognizedSpeech: Bool, code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
+        if code != .success  {
+            print("====onSpeech2Text fail")
+            return .discard
+        }
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
             }
             print("====onSpeech2Text:\(result) recognizedSpeech:\(recognizedSpeech)")
-            //            result.append("123456789")
             let info = MainView.Info(uuid: roundId, content: result.copy() as! String)
             mainView.addOrUpdateInfo(info: info)
         }
         return config.enableSTT ? .continue : .discard
     }
     
-    func onLLMResult(withRoundId roundId: String, answer: NSMutableString, isRoundEnd: Bool) -> AgoraAIGCHandleResult {
+    func onLLMResult(withRoundId roundId: String, answer: NSMutableString, isRoundEnd: Bool, estimatedResponseTokens tokens: UInt, code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
+        if code != .success  {
+            print("====onLLMResult fail")
+            return .discard
+        }
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -187,7 +198,12 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         return config.enableTTS ? .continue : .discard
     }
     
-    func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int) -> AgoraAIGCHandleResult {
+    func onText2SpeechResult(withRoundId roundId: String, voice: Data, sampleRates: Int, channels: Int, bits: Int, code: AgoraAIGCServiceCode) -> AgoraAIGCHandleResult {
+        if code != .success  {
+            print("====onText2SpeechResult")
+            return .discard
+        }
+        
         DispatchQueue.main.async { [weak self] in
             guard let `self` = self else {
                 return
@@ -201,7 +217,7 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
     func mainViewDidShouldSendText(text: String) {
         let info = MainView.Info(uuid: "\(UInt8.random(in: 0...200))", content: text)
         mainView.addOrUpdateInfo(info: info)
-        service.pushTxtDialogue(text)
+        service.pushTxtDialogue(text, roundId: nil)
     }
     
     // MARK: - RtcManagerDelegate
@@ -212,7 +228,7 @@ class MainViewController: UIViewController, AgoraAIGCServiceDelegate, RtcManager
         let count = frame.samplesPerChannel * frame.channels * frame.bytesPerSample
         let data = Data(bytes: frame.buffer!, count: count)
         DispatchQueue.main.async {
-            self.service.pushSpeechDialogue(with: data, vad: .nonMute)
+            self.service.pushSpeechDialogue(with: data, vad: .nonMute, isLastFrame: false)
         }
     }
     func rtcManagerOnVadUpdate(isSpeaking: Bool) {}
