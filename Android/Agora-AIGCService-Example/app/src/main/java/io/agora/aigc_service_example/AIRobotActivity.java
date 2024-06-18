@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -245,7 +246,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         if (mAiHistoryListAdapter == null) {
             mAiHistoryListAdapter = new HistoryListAdapter(getApplicationContext(), mHistoryDataList);
             binding.aiHistoryList.setAdapter(mAiHistoryListAdapter);
-            binding.aiHistoryList.setLayoutManager(new WrapContentLinearLayoutManager(getApplicationContext()));
+            binding.aiHistoryList.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
             binding.aiHistoryList.addItemDecoration(new HistoryListAdapter.SpacesItemDecoration(10));
         } else {
             mHistoryDataList.clear();
