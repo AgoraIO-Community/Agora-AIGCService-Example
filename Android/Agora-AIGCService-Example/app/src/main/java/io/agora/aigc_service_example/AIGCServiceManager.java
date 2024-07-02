@@ -41,7 +41,7 @@ public class AIGCServiceManager {
         mAIGCService.initialize(new AIGCServiceConfig() {{
             this.context = onContext;
             this.callback = serviceCallback;
-            this.enableLog = true;
+            this.enableConsoleLog = true;
             this.enableSaveLogToFile = true;
             this.userName = "AI";
             this.appId = KeyCenter.APP_ID;

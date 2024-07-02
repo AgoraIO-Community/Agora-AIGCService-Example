@@ -87,11 +87,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
 
-    implementation('io.github.winskyan:Agora-AIGCService:1.2.1') {
-        exclude group: 'io.jsonwebtoken', module: 'jjwt'
-    }
+    implementation("io.github.winskyan:Agora-AIGCService:1.3.0-alpha-3")
 
-    implementation 'io.agora:authentication:1.6.1'
+    implementation 'io.agora:authentication:2.0.0'
     implementation 'commons-codec:commons-codec:1.16.0'
 
     implementation("io.agora.rtc:agora-special-voice:4.2.6.8")
