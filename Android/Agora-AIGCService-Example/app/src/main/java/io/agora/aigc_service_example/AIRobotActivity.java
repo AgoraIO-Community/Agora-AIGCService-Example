@@ -360,7 +360,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        Log.i(TAG, "onDestroy");
     }
 
     private void exit() {
