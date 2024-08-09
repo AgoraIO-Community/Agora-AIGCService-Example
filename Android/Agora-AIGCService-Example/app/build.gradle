@@ -86,13 +86,14 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-
-    implementation("io.github.winskyan:Agora-AIGCService:1.3.0-alpha-3")
+    implementation("io.github.winskyan:Agora-AIGCService:1.3.0-alpha-7")
 
     implementation 'io.agora:authentication:2.0.0'
     implementation 'commons-codec:commons-codec:1.16.0'
 
     implementation("io.agora.rtc:agora-special-voice:4.2.6.8")
+
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 }
 
 static def releaseTime() {
