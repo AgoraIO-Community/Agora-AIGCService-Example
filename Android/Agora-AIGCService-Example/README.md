@@ -4,7 +4,7 @@
 
 1. Integrated the SDK.For example:
 ```mk
-implementation('io.github.winskyan:Agora-AIGCService:1.2.0')
+implementation('io.github.winskyan:Agora-AIGCService:1.3.0-alpha-7')
 ```
 
 2. Update the configuration which in local.properties.For example:

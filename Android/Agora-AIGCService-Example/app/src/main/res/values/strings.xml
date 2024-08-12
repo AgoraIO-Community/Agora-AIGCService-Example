@@ -6,4 +6,5 @@
     <string name="send_messages_llm">发送Messages到LLM</string>
     <string name="send_text_tts">发送文本到TTS</string>
     <string name="exit">退出</string>
+    <string name="go">Go</string>
 </resources>

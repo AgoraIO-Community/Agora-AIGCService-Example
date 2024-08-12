@@ -123,8 +123,6 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
                     @Override
                     public void onLeaveChannel(RtcStats stats) {
                         Log.i(TAG, "onLeaveChannel stats:" + stats);
-                        mJoinChannelSuccess = false;
-                        AIGCServiceManager.getInstance().destroy();
                     }
 
                     @Override
@@ -139,6 +137,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
 
                 };
                 rtcEngineConfig.mAudioScenario = io.agora.rtc2.Constants.AUDIO_SCENARIO_GAME_STREAMING;
+                rtcEngineConfig.addExtension("agora_ai_noise_suppression_extension");
                 mRtcEngine = RtcEngine.create(rtcEngineConfig);
 
                 mRtcEngine.setParameters("{\"rtc.enable_debug_log\":true}");
@@ -361,17 +360,19 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
+        exit();
     }
 
     private void exit() {
+        Log.i(TAG, "exit");
         if (mJoinChannelSuccess) {
             mRtcEngine.leaveChannel();
-            RtcEngine.destroy();
-        } else {
-            RtcEngine.destroy();
-            AIGCServiceManager.getInstance().destroy();
         }
+        AIGCServiceManager.getInstance().destroy();
 
+        RtcEngine.destroy();
+        mJoinChannelSuccess = false;
+        finish();
     }
 
     private byte[] getSpeechVoiceData(int length) {
@@ -430,7 +431,7 @@ public class AIRobotActivity extends Activity implements AIGCServiceCallback, IA
         } else if (event == ServiceEvent.STOP && code == ServiceCode.SUCCESS) {
             mAIGCServiceStarted = false;
         } else if (event == ServiceEvent.DESTROY && code == ServiceCode.SUCCESS) {
-            finish();
+            //finish();
         }
     }
 
